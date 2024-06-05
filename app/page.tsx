@@ -9,7 +9,7 @@ export default function Page() {
   const eventSource = useRef();
   return (
     <div ref={eventSource}>
-      <GlobalCanvas onCreated={(state) => (state.gl.toneMapping = THREE.AgXToneMapping)}>
+      <GlobalCanvas>
         {(globalChildren) => (
           <>
             <Suspense fallback={null}>

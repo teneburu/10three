@@ -28,9 +28,10 @@ extend({ ShaderImpl });
 
 const Filter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const buffer = useFBO();
-  const { scene, camera, gl, size } = useThree();
+  const { scene, camera, gl } = useThree();
   const composer = useRef<EffectComposer>(null!);
   const aspect = useMemo(() => new THREE.Vector2(512, 512), []);
+  const viewport = useThree((state) => state.viewport);
 
   useEffect(() => {
     const effectComposer = new EffectComposer(gl);
@@ -46,10 +47,11 @@ const Filter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     composer.current = effectComposer;
   }, [gl, scene, camera, aspect]);
 
-  useEffect(() => void composer.current.setSize(size.width, size.height), [size]);
+  useEffect(() => void composer.current.setSize(viewport.width, viewport.height), [viewport]);
 
   useFrame(() => {
-    // Render the offscreen scene to the FBO buffer
+
+    // Render the scene to the FBO buffer
     gl.setRenderTarget(buffer);
     gl.setClearColor("#ecedef", 1);
     gl.render(scene, camera);
@@ -62,7 +64,7 @@ const Filter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <>
       {createPortal(children, scene)}
-      <mesh scale={[size.width, size.height, 1]}>
+      <mesh scale={[viewport.width, viewport.height, 1]}>
         <planeGeometry />
         <meshBasicMaterial map={buffer.texture} />
       </mesh>

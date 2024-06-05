@@ -26,7 +26,7 @@ export default function Page() {
         )}
       </GlobalCanvas>
       <SmoothScrollbar config={{syncTouch: true}} />
-      <Headline>Scroll</Headline>
+      <Headline> I WANT TO BE PIXELATED</Headline>
     </div>
   )
 }

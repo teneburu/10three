@@ -9,7 +9,12 @@ export default function Page() {
   const eventSource = useRef();
   return (
     <div ref={eventSource}>
-      <GlobalCanvas>
+      <GlobalCanvas
+        debug={true}
+        scaleMultiplier={0.5}
+        eventSource={eventSource}
+        eventPrefix='client'
+        style={{width: '100%', height: '100%', pointerEvents: 'none', }}>
         {(globalChildren) => (
           <>
             <Suspense fallback={null}>
@@ -21,18 +26,7 @@ export default function Page() {
         )}
       </GlobalCanvas>
       <SmoothScrollbar config={{syncTouch: true}} />
-      <article>
-
-        <header className="container">
-          <div className="text-center">
-            <h2 className='-z-10 text-6xl'>
-              <Headline>
-                TEST TEST TEST
-              </Headline>
-            </h2>
-          </div>
-        </header>
-      </article>
+      <Headline>Scroll</Headline>
     </div>
   )
 }

@@ -18,8 +18,7 @@ extend({ EffectComposer, RenderPass, ShaderPass, UnrealBloomPass });
 const ShaderImpl = shaderMaterial(
   {
     tDiffuse: new THREE.Texture(),
-    iResolution: new Vector2(512, 512),
-    time: 0,
+    iResolution: new Vector2(1280, 1280),
   },
   vertex,
   fragment
@@ -29,17 +28,14 @@ extend({ ShaderImpl });
 
 const Filter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const buffer = useFBO();
-  const { scene: mainScene, camera: mainCamera, gl, size } = useThree();
-  const [offscreenScene] = useState(() => new THREE.Scene());
+  const { scene, camera, gl, size } = useThree();
   const composer = useRef<EffectComposer>(null!);
-  const shaderRef = useRef<THREE.ShaderMaterial>(null!);
   const aspect = useMemo(() => new THREE.Vector2(512, 512), []);
 
   useEffect(() => {
     const effectComposer = new EffectComposer(gl);
-    const renderPass = new RenderPass(offscreenScene, mainCamera);
+    const renderPass = new RenderPass(scene, camera);
     const shaderPass = new ShaderPass(new ShaderImpl());
-    shaderRef.current = shaderPass.material;
 
     const unrealBloomPass = new UnrealBloomPass(aspect, 2, 0.8, 0.23);
 
@@ -48,35 +44,24 @@ const Filter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     effectComposer.addPass(unrealBloomPass);
 
     composer.current = effectComposer;
-  }, [gl, offscreenScene, mainCamera, aspect]);
+  }, [gl, scene, camera, aspect]);
 
-  useEffect(() => {
-    const { width, height } = size;
-    composer.current.setSize(width, height);
-    if (shaderRef.current) {
-      shaderRef.current.uniforms.iResolution.value.set(width, height);
-    }
-  }, [size]);
+  useEffect(() => void composer.current.setSize(size.width, size.height), [size]);
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     // Render the offscreen scene to the FBO buffer
     gl.setRenderTarget(buffer);
-    gl.setClearColor("#ecedef");
-    gl.render(offscreenScene, mainCamera);
+    gl.setClearColor("#ecedef", 1);
+    gl.render(scene, camera);
     gl.setRenderTarget(null);
-
-    // Update shader uniforms
-    if (shaderRef.current) {
-      shaderRef.current.uniforms.time.value += delta;
-    }
 
     // Apply post-processing to the rendered scene
     composer.current.render();
-  });
+  }, 1);
 
   return (
     <>
-      {createPortal(children, offscreenScene)}
+      {createPortal(children, scene)}
       <mesh scale={[size.width, size.height, 1]}>
         <planeGeometry />
         <meshBasicMaterial map={buffer.texture} />
